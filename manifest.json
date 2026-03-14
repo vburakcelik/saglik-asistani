@@ -1,0 +1,17 @@
+{
+  "name": "Sağlık Asistanı",
+  "short_name": "SağlıkAI",
+  "description": "Kişisel sağlık takip ve AI asistan uygulaması",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0f1e",
+  "theme_color": "#0a0f1e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%230a0f1e'/><text x='96' y='130' font-size='100' text-anchor='middle' fill='%2300d4aa'>+</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}
