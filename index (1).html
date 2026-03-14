@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="SağlıkAI"/>
+<meta name="theme-color" content="#0a0f1e"/>
+<link rel="manifest" href="manifest.json"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<title>Sağlık Asistanı</title>
+<style>
+:root{
+  --bg:#0a0f1e;--surface:#111827;--surface2:#1a2235;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.15);
+  --text:#f0f4ff;--text2:#8892aa;--text3:#3d4a5c;
+  --accent:#00d4aa;--warn:#f59e0b;--danger:#ef4444;--info:#3b82f6;
+  --radius:16px;--radius-sm:10px;
+  --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow:hidden;}
+body{display:flex;flex-direction:column;}
+
+/* HEADER */
+.hdr{padding:calc(var(--st) + 12px) 16px 12px;display:flex;align-items:center;gap:10px;flex-shrink:0;border-bottom:1px solid var(--border);}
+.hdr-logo{width:34px;height:34px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:18px;color:#0a0f1e;font-weight:700;flex-shrink:0;}
+.hdr-title{font-size:16px;font-weight:500;}
+.hdr-sub{font-size:11px;color:var(--text2);}
+.hdr-right{margin-left:auto;display:flex;gap:8px;}
+.icon-btn{width:34px;height:34px;border-radius:9px;border:1px solid var(--border2);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;}
+
+/* SCROLL */
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px 8px;}
+.scroll::-webkit-scrollbar{display:none;}
+
+/* NAV */
+.nav{display:flex;background:var(--surface);border-top:1px solid var(--border);padding-bottom:var(--sb);flex-shrink:0;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 4px;cursor:pointer;color:var(--text3);font-size:10px;border:none;background:none;font-family:'DM Sans',sans-serif;}
+.nav-btn.active{color:var(--accent);}
+.nav-icon{font-size:19px;line-height:1;}
+
+/* PAGES */
+.page{display:none;}.page.active{display:block;}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;}
+.card-lbl{font-size:11px;color:var(--text2);font-weight:500;letter-spacing:.05em;text-transform:uppercase;margin-bottom:12px;}
+
+/* STATS */
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.stat{background:var(--surface2);border-radius:var(--radius-sm);padding:10px 6px;text-align:center;}
+.stat-n{font-size:24px;font-weight:300;color:var(--accent);font-family:'DM Mono',monospace;}
+.stat-l{font-size:10px;color:var(--text2);margin-top:1px;}
+
+/* UPLOAD ZONE */
+.upload-zone{border:2px dashed var(--border2);border-radius:var(--radius);padding:32px 20px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:12px;}
+.upload-zone:active,.upload-zone.drag{border-color:var(--accent);background:rgba(0,212,170,.05);}
+.upload-icon{font-size:40px;margin-bottom:10px;}
+.upload-title{font-size:15px;font-weight:500;color:var(--text);margin-bottom:4px;}
+.upload-sub{font-size:12px;color:var(--text2);}
+
+/* PROGRESS */
+.progress-wrap{background:var(--surface2);border-radius:8px;height:6px;margin:10px 0;overflow:hidden;}
+.progress-bar{height:100%;background:var(--accent);border-radius:8px;transition:width .3s;width:0%;}
+
+/* FORMS */
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+.fg label{font-size:12px;color:var(--text2);}
+.fg input,.fg select,.fg textarea{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;width:100%;-webkit-appearance:none;}
+.fg select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 5 5-5' stroke='%238892aa' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+.fg textarea{resize:vertical;min-height:70px;line-height:1.5;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--accent);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* BUTTONS */
+.btn{padding:10px 16px;border-radius:var(--radius-sm);border:1px solid var(--border2);background:transparent;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;font-weight:500;}
+.btn-accent{background:var(--accent);color:#0a0f1e;border-color:var(--accent);}
+.btn-full{width:100%;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;}
+
+/* ENTRIES */
+.entry{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px;}
+.entry-head{display:flex;align-items:flex-start;justify-content:space-between;}
+.entry-del{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;line-height:1;padding:0;}
+.entry-meta{font-size:11px;color:var(--text2);margin-top:3px;}
+.entry-body{font-size:13px;color:var(--text);margin-top:6px;line-height:1.55;}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:500;}
+.b-teal{background:rgba(0,212,170,.15);color:#00d4aa;}
+.b-amber{background:rgba(245,158,11,.2);color:#fbbf24;}
+.b-red{background:rgba(239,68,68,.2);color:#f87171;}
+.b-blue{background:rgba(59,130,246,.2);color:#93c5fd;}
+.b-green{background:rgba(34,197,94,.2);color:#4ade80;}
+
+/* AI BOX */
+.ai-box{background:rgba(0,212,170,.06);border:1px solid rgba(0,212,170,.18);border-radius:var(--radius-sm);padding:12px;margin-top:10px;}
+.ai-lbl{font-size:11px;color:var(--accent);font-weight:500;margin-bottom:6px;}
+.ai-txt{font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap;}
+
+/* TIMELINE */
+.tl{padding-left:16px;position:relative;}
+.tl::before{content:'';position:absolute;left:4px;top:0;bottom:0;width:1px;background:var(--border2);}
+.tl-item{position:relative;margin-bottom:12px;}
+.tl-dot{position:absolute;left:-14px;top:4px;width:8px;height:8px;border-radius:50%;background:var(--accent);}
+.tl-d{font-size:10px;color:var(--text3);margin-bottom:1px;}
+.tl-t{font-size:13px;color:var(--text);}
+
+/* CHAT */
+.chat-outer{display:flex;flex-direction:column;height:calc(100vh - 130px - var(--st) - var(--sb));}
+.chat-msgs{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px;}
+.chat-msgs::-webkit-scrollbar{display:none;}
+.msg{margin-bottom:10px;display:flex;flex-direction:column;}
+.msg-u{align-items:flex-end;}.msg-a{align-items:flex-start;}
+.bubble{max-width:84%;padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.6;}
+.bubble-u{background:var(--accent);color:#0a0f1e;border-bottom-right-radius:3px;}
+.bubble-a{background:var(--surface2);color:var(--text);border-bottom-left-radius:3px;border:1px solid var(--border);}
+.chat-row{display:flex;gap:8px;padding-top:8px;flex-shrink:0;}
+.chat-row input{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:22px;padding:9px 14px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;}
+.chat-row input:focus{outline:none;border-color:var(--accent);}
+.send-btn{width:38px;height:38px;border-radius:50%;background:var(--accent);border:none;color:#0a0f1e;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* LOADING */
+.dots{display:inline-flex;gap:4px;align-items:center;}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:bop 1.2s infinite;}
+.dot:nth-child(2){animation-delay:.2s;}.dot:nth-child(3){animation-delay:.4s;}
+@keyframes bop{0%,80%,100%{transform:scale(.7);opacity:.4}40%{transform:scale(1.1);opacity:1}}
+
+/* DRIVE FILES */
+.drive-file{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:7px;cursor:pointer;}
+.drive-file:active{opacity:.7;}
+.drive-file-icon{width:32px;height:32px;border-radius:8px;background:rgba(59,130,246,.15);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.drive-file-name{font-size:13px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.drive-file-meta{font-size:11px;color:var(--text2);margin-top:1px;}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:flex;align-items:flex-end;}
+.modal-bg.hidden{display:none;}
+.modal{background:var(--surface);border-radius:var(--radius) var(--radius) 0 0;padding:20px 16px calc(var(--sb) + 20px);width:100%;max-height:85vh;overflow-y:auto;}
+.modal-handle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:0 auto 14px;}
+.modal-title{font-size:15px;font-weight:500;margin-bottom:14px;}
+
+/* EMPTY */
+.empty{text-align:center;padding:32px 16px;color:var(--text3);}
+.empty-icon{font-size:36px;margin-bottom:8px;}
+.empty-t{font-size:13px;}
+
+/* PROCESSING CARD */
+.proc-card{background:var(--surface2);border:1px solid rgba(0,212,170,.2);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;}
+.proc-icon{font-size:22px;flex-shrink:0;}
+.proc-name{font-size:13px;color:var(--text);font-weight:500;}
+.proc-status{font-size:11px;color:var(--text2);margin-top:2px;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-logo">+</div>
+  <div>
+    <div class="hdr-title">Sağlık Asistanı</div>
+    <div class="hdr-sub" id="hdr-sub">0 kayıt</div>
+  </div>
+  <div class="hdr-right">
+    <div class="icon-btn" onclick="showModal('pdf-modal')">📄</div>
+    <div class="icon-btn" onclick="showPage('ayarlar')">⚙️</div>
+  </div>
+</div>
+
+<!-- SCROLL -->
+<div class="scroll" id="main-scroll">
+
+  <!-- ÖZET -->
+  <div class="page active" id="page-ozet">
+    <div class="stat-row">
+      <div class="stat"><div class="stat-n" id="s-t">0</div><div class="stat-l">Tahlil</div></div>
+      <div class="stat"><div class="stat-n" id="s-g">0</div><div class="stat-l">Görüntüleme</div></div>
+      <div class="stat"><div class="stat-n" id="s-a">0</div><div class="stat-l">Tanı/Op.</div></div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Son kayıtlar</div>
+      <div class="tl" id="ozet-tl"><div class="empty"><div class="empty-icon">📋</div><div class="empty-t">Henüz kayıt yok</div></div></div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Hızlı not</div>
+      <div class="fg"><input type="text" id="qnote" placeholder="Semptom, his, gözlem..."/></div>
+      <button class="btn btn-accent btn-full" onclick="addNote()">Kaydet</button>
+    </div>
+  </div>
+
+  <!-- YÜKLE (ANA EKRAN) -->
+  <div class="page" id="page-yukle">
+    <!-- Telefon / bilgisayardan yükle -->
+    <div class="card">
+      <div class="card-lbl">Dosya yükle</div>
+      <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+        <div class="upload-icon">📂</div>
+        <div class="upload-title">Dosya seç veya sürükle</div>
+        <div class="upload-sub">PDF, JPG, PNG — tahlil, MR, rapor, reçete</div>
+      </div>
+      <input type="file" id="file-input" accept=".pdf,image/*" multiple style="display:none" onchange="handleFiles(this.files)"/>
+      <div id="upload-progress" style="display:none;">
+        <div class="progress-wrap"><div class="progress-bar" id="prog-bar"></div></div>
+        <div style="font-size:12px;color:var(--text2);text-align:center;margin-top:4px;" id="prog-txt">İşleniyor...</div>
+      </div>
+    </div>
+
+    <!-- Google Drive -->
+    <div class="card">
+      <div class="card-lbl">Google Drive'dan aktar</div>
+      <div id="drive-panel">
+        <p style="font-size:13px;color:var(--text2);margin-bottom:12px;">Drive'daki PDF veya fotoğraf raporlarınızı seçin, AI otomatik okusun ve sınıflandırsın.</p>
+        <button class="btn btn-accent btn-full" onclick="initDrive()">Drive'a Bağlan</button>
+      </div>
+      <div id="drive-files" style="display:none;margin-top:4px;"></div>
+    </div>
+
+    <!-- İşlenen dosyalar -->
+    <div id="proc-list"></div>
+  </div>
+
+  <!-- TAHLİLLER -->
+  <div class="page" id="page-tahlil">
+    <div class="card">
+      <div class="card-lbl">Manuel tahlil ekle</div>
+      <div class="form-row" style="margin-bottom:10px;">
+        <div class="fg" style="margin-bottom:0;"><label>Tarih</label><input type="date" id="t-tarih"/></div>
+        <div class="fg" style="margin-bottom:0;"><label>Tür</label>
+          <select id="t-tur">
+            <option>CBC (Kan sayımı)</option><option>Biyokimya</option><option>Tiroid</option>
+            <option>Lipid paneli</option><option>Vitamin D/B12</option><option>HbA1c/Şeker</option>
+            <option>Hormon paneli</option><option>Ferritin/Demir</option><option>Diğer</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label>Değerler</label><textarea id="t-val" placeholder="Örn: Hemoglobin: 11.2, Ferritin: 8..."></textarea></div>
+      <div class="fg"><label>Doktor notu</label><input type="text" id="t-not" placeholder="Opsiyonel"/></div>
+      <div class="btn-row">
+        <button class="btn btn-accent" style="flex:1" onclick="saveTahlil(true)">Kaydet + AI Yorum ↗</button>
+        <button class="btn" onclick="saveTahlil(false)">Kaydet</button>
+      </div>
+    </div>
+    <div id="tahlil-list"></div>
+  </div>
+
+  <!-- GÖRÜNTÜLEME -->
+  <div class="page" id="page-goruntuleme">
+    <div class="card">
+      <div class="card-lbl">Manuel görüntüleme ekle</div>
+      <div class="form-row" style="margin-bottom:10px;">
+        <div class="fg" style="margin-bottom:0;"><label>Tarih</label><input type="date" id="g-tarih"/></div>
+        <div class="fg" style="margin-bottom:0;"><label>Tür</label>
+          <select id="g-tur">
+            <option>MR – Beyin</option><option>MR – Omurga</option><option>MR – Eklem/Diz</option>
+            <option>BT (Tomografi)</option><option>Röntgen</option><option>Ultrason</option>
+            <option>PET-CT</option><option>Ekokardiyo</option><option>Diğer</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label>Rapor / bulgular</label><textarea id="g-rapor" placeholder="Raporu yapıştırın..."></textarea></div>
+      <div class="btn-row">
+        <button class="btn btn-accent" style="flex:1" onclick="saveGoruntuleme(true)">Kaydet + AI Yorum ↗</button>
+        <button class="btn" onclick="saveGoruntuleme(false)">Kaydet</button>
+      </div>
+    </div>
+    <div id="goruntuleme-list"></div>
+  </div>
+
+  <!-- ASISTAN -->
+  <div class="page" id="page-chat">
+    <div class="chat-outer">
+      <div class="chat-msgs" id="chat-msgs">
+        <div class="msg msg-a">
+          <div class="bubble bubble-a">Merhaba! Tüm sağlık kayıtlarınız bağlamında yardımcı olabilirim. Tahlil yorumu, beslenme, supplement, egzersiz veya görüntüleme sonuçları hakkında soru sorabilirsiniz.</div>
+        </div>
+      </div>
+      <div class="chat-row">
+        <input type="text" id="chat-in" placeholder="Sorunuzu yazın..." onkeydown="if(event.key==='Enter')sendChat()"/>
+        <button class="send-btn" onclick="sendChat()">↑</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AYARLAR -->
+  <div class="page" id="page-ayarlar">
+    <div class="card">
+      <div class="card-lbl">Profil</div>
+      <div class="fg"><label>Ad soyad</label><input type="text" id="p-ad" placeholder="Adınız"/></div>
+      <div class="form-row">
+        <div class="fg"><label>Doğum yılı</label><input type="number" id="p-yil" placeholder="1990"/></div>
+        <div class="fg"><label>Cinsiyet</label><select id="p-cin"><option value="">Seçin</option><option>Kadın</option><option>Erkek</option><option>Diğer</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>Boy (cm)</label><input type="number" id="p-boy" placeholder="170"/></div>
+        <div class="fg"><label>Kilo (kg)</label><input type="number" id="p-kilo" placeholder="70"/></div>
+      </div>
+      <button class="btn btn-accent btn-full" onclick="saveProfile()">Kaydet</button>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Veri yönetimi</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <button class="btn" style="flex:1" onclick="exportJSON()">JSON yedek</button>
+        <button class="btn" style="flex:1" onclick="document.getElementById('imp').click()">JSON yükle</button>
+      </div>
+      <input type="file" id="imp" accept=".json" style="display:none" onchange="importJSON(this)"/>
+      <button class="btn btn-full" style="color:var(--danger);border-color:var(--danger);" onclick="clearAll()">Tüm verileri sil</button>
+    </div>
+  </div>
+
+</div><!-- /scroll -->
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn active" id="nav-ozet" onclick="showPage('ozet')"><span class="nav-icon">🏠</span><span>Özet</span></button>
+  <button class="nav-btn" id="nav-yukle" onclick="showPage('yukle')"><span class="nav-icon">⬆️</span><span>Yükle</span></button>
+  <button class="nav-btn" id="nav-tahlil" onclick="showPage('tahlil')"><span class="nav-icon">🧪</span><span>Tahlil</span></button>
+  <button class="nav-btn" id="nav-goruntuleme" onclick="showPage('goruntuleme')"><span class="nav-icon">🔬</span><span>Görüntü</span></button>
+  <button class="nav-btn" id="nav-chat" onclick="showPage('chat')"><span class="nav-icon">💬</span><span>Asistan</span></button>
+</nav>
+
+<!-- PDF MODAL -->
+<div class="modal-bg hidden" id="pdf-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">PDF Raporu</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px;">Tüm sağlık geçmişiniz, tahliller ve AI yorumları tek PDF'te.</p>
+    <button class="btn btn-accent btn-full" onclick="exportPDF();closeModal('pdf-modal')">İndir</button>
+    <button class="btn btn-full" style="margin-top:8px;" onclick="closeModal('pdf-modal')">İptal</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+// ── STATE ─────────────────────────────────────────────────
+const DB = 'saglik_v3';
+let S = {profile:{}, tahliller:[], goruntulmeler:[], tanilar:[], notlar:[], chat:[]};
+
+function load() {
+  try { const d=localStorage.getItem(DB); if(d) S={...S,...JSON.parse(d)}; } catch(e){}
+  renderAll(); loadProfile();
+}
+function save() { localStorage.setItem(DB, JSON.stringify(S)); updateHeader(); }
+function today() { return new Date().toISOString().split('T')[0]; }
+function fmt(d) { if(!d) return ''; const p=d.split('-'); return `${p[2]}.${p[1]}.${p[0]}`; }
+
+// ── NAV ───────────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id)?.classList.add('active');
+  document.getElementById('nav-'+id)?.classList.add('active');
+  document.getElementById('main-scroll').scrollTop=0;
+  if(id==='ozet') renderOzet();
+}
+function showModal(id){document.getElementById(id).classList.remove('hidden');}
+function closeModal(id){document.getElementById(id).classList.add('hidden');}
+
+// ── HEADER ────────────────────────────────────────────────
+function updateHeader() {
+  const total = S.tahliller.length+S.goruntulmeler.length+S.tanilar.length;
+  const name = S.profile?.ad||'';
+  document.getElementById('hdr-sub').textContent = name ? `${name} · ${total} kayıt` : `${total} kayıt`;
+}
+
+// ── ÖZET ──────────────────────────────────────────────────
+function renderOzet() {
+  document.getElementById('s-t').textContent=S.tahliller.length;
+  document.getElementById('s-g').textContent=S.goruntulmeler.length;
+  document.getElementById('s-a').textContent=S.tanilar.length;
+  const all=[
+    ...S.tahliller.map(x=>({...x,tip:'tahlil'})),
+    ...S.goruntulmeler.map(x=>({...x,tip:'goruntuleme'})),
+    ...S.tanilar.map(x=>({...x,tip:'tani'})),
+    ...S.notlar.map(x=>({...x,tip:'not'}))
+  ].sort((a,b)=>(b.tarih||'').localeCompare(a.tarih||''));
+  const tl=document.getElementById('ozet-tl');
+  if(!all.length){tl.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-t">Henüz kayıt yok</div></div>';return;}
+  const cls={tahlil:'b-teal',goruntuleme:'b-amber',tani:'b-red',not:'b-green'};
+  const lbl={tahlil:'Tahlil',goruntuleme:'Görüntüleme',tani:'Tanı',not:'Not'};
+  tl.innerHTML=all.slice(0,10).map(x=>`
+    <div class="tl-item"><div class="tl-dot"></div>
+    <div class="tl-d">${fmt(x.tarih)||'—'}</div>
+    <div class="tl-t"><span class="badge ${cls[x.tip]}">${lbl[x.tip]}</span> ${x.tur||x.kategori||x.text||''}</div>
+    </div>`).join('');
+}
+
+// ── QUICK NOTE ────────────────────────────────────────────
+function addNote(){
+  const v=document.getElementById('qnote').value.trim();
+  if(!v)return;
+  S.notlar.unshift({tarih:today(),text:v});
+  document.getElementById('qnote').value='';
+  save();renderOzet();
+}
+
+// ── FILE UPLOAD (telefondan/bilgisayardan) ─────────────────
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag');
+  handleFiles(e.dataTransfer.files);
+}
+function handleFiles(files){
+  if(!files||!files.length)return;
+  Array.from(files).forEach(f=>processFile(f, f.name));
+}
+
+async function processFile(fileOrBlob, name) {
+  const procList = document.getElementById('proc-list');
+  const cardId = 'proc-'+Date.now();
+  const card = document.createElement('div');
+  card.className='proc-card'; card.id=cardId;
+  const ext = name.split('.').pop().toLowerCase();
+  const icon = ext==='pdf'?'📄':'🖼️';
+  card.innerHTML=`<div class="proc-icon">${icon}</div><div><div class="proc-name">${name}</div><div class="proc-status" id="st-${cardId}">Okunuyor...</div></div>`;
+  procList.prepend(card);
+
+  showProgress(true, 'Dosya okunuyor...');
+
+  try {
+    const reader = new FileReader();
+    const base64 = await new Promise((res,rej)=>{
+      reader.onload=e=>res(e.target.result.split(',')[1]);
+      reader.onerror=rej;
+      reader.readAsDataURL(fileOrBlob);
+    });
+
+    const mime = fileOrBlob.type || (ext==='pdf'?'application/pdf':'image/jpeg');
+    showProgress(true,'AI analiz ediyor...',50);
+    document.getElementById('st-'+cardId).textContent='AI analiz ediyor...';
+
+    const isImg = mime.startsWith('image/');
+    const contentBlock = isImg
+      ? {type:'image',source:{type:'base64',media_type:mime,data:base64}}
+      : {type:'document',source:{type:'base64',media_type:'application/pdf',data:base64}};
+
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1500,
+        system:`Sen bir sağlık asistanısın. Türkçe yanıt ver. SADECE JSON döndür, başka hiçbir şey yazma.
+Hasta geçmişi:
+${buildCtx()}`,
+        messages:[{role:'user',content:[
+          contentBlock,
+          {type:'text',text:`Bu tıbbi belgeden aşağıdaki JSON formatını çıkar:
+{
+  "kategori": "tahlil" veya "goruntuleme" veya "tani" veya "diger",
+  "tur": "belgenin türü (örn: CBC, Tiroid, MR-Beyin, Röntgen, Ameliyat, Reçete...)",
+  "tarih": "YYYY-MM-DD formatında tarih, yoksa boş string",
+  "ozet": "belgedeki önemli bilgiler ve değerler, 2-3 cümle",
+  "aiYorum": "bu sonuçların sağlık açısından değerlendirmesi, dikkat edilmesi gerekenler, öneriler. 3-5 cümle."
+}`}
+        ]}]
+      })
+    });
+
+    const data = await res.json();
+    const raw = data.content?.[0]?.text||'{}';
+    let parsed;
+    try {
+      const clean = raw.replace(/```json|```/g,'').trim();
+      parsed = JSON.parse(clean);
+    } catch { parsed = {kategori:'diger',tur:name,tarih:today(),ozet:raw,aiYorum:''}; }
+
+    showProgress(true,'Kaydediliyor...',80);
+    document.getElementById('st-'+cardId).textContent='Kaydedildi ✓';
+
+    const entry = {
+      id:Date.now(),
+      tarih: parsed.tarih||today(),
+      tur: parsed.tur||name,
+      dosyaAdi: name,
+      ozet: parsed.ozet||'',
+      aiYorum: parsed.aiYorum||''
+    };
+
+    if(parsed.kategori==='tahlil') {
+      entry.val = parsed.ozet;
+      S.tahliller.unshift(entry);
+      renderTahlilList();
+    } else if(parsed.kategori==='goruntuleme') {
+      entry.rapor = parsed.ozet;
+      S.goruntulmeler.unshift(entry);
+      renderGoruntulemeList();
+    } else if(parsed.kategori==='tani') {
+      entry.acik = parsed.ozet;
+      entry.kategori = parsed.tur;
+      S.tanilar.unshift(entry);
+    } else {
+      entry.val = parsed.ozet;
+      S.tahliller.unshift(entry);
+      renderTahlilList();
+    }
+
+    save(); renderOzet();
+    showProgress(true,'Tamamlandı!',100);
+    setTimeout(()=>showProgress(false),1500);
+
+    // Update proc card
+    card.innerHTML=`<div class="proc-icon">${icon}</div>
+      <div style="flex:1;">
+        <div class="proc-name">${name}</div>
+        <div class="proc-status">${parsed.tur} · <span class="badge b-teal">Kaydedildi</span></div>
+      </div>`;
+
+  } catch(e) {
+    document.getElementById('st-'+cardId).textContent='Hata: '+e.message;
+    showProgress(false);
+  }
+}
+
+function showProgress(show, txt='', pct=0){
+  const wrap=document.getElementById('upload-progress');
+  wrap.style.display=show?'block':'none';
+  if(show){
+    document.getElementById('prog-bar').style.width=pct+'%';
+    document.getElementById('prog-txt').textContent=txt;
+  }
+}
+
+// ── TAHLIL (manuel) ───────────────────────────────────────
+function saveTahlil(withAI){
+  const tarih=document.getElementById('t-tarih').value||today();
+  const tur=document.getElementById('t-tur').value;
+  const val=document.getElementById('t-val').value.trim();
+  const not=document.getElementById('t-not').value.trim();
+  if(!val){alert('Değerleri girin.');return;}
+  const e={id:Date.now(),tarih,tur,val,not};
+  S.tahliller.unshift(e);
+  save();renderTahlilList();
+  document.getElementById('t-val').value='';
+  document.getElementById('t-not').value='';
+  if(withAI) aiYorumTahlil(e);
+}
+function renderTahlilList(){
+  const el=document.getElementById('tahlil-list');
+  if(!S.tahliller.length){el.innerHTML='<div class="empty"><div class="empty-icon">🧪</div><div class="empty-t">Henüz tahlil yok</div></div>';return;}
+  el.innerHTML=S.tahliller.map((x,i)=>`
+    <div class="entry">
+      <div class="entry-head"><span class="badge b-teal">${x.tur}</span>
+      <button class="entry-del" onclick="S.tahliller.splice(${i},1);save();renderTahlilList()">×</button></div>
+      <div class="entry-meta">${fmt(x.tarih)}${x.not?' · '+x.not:''}${x.dosyaAdi?' · '+x.dosyaAdi:''}</div>
+      <div class="entry-body">${(x.val||x.ozet||'').substring(0,150)}${(x.val||x.ozet||'').length>150?'…':''}</div>
+      ${x.aiYorum?`<div class="ai-box"><div class="ai-lbl">AI Değerlendirmesi</div><div class="ai-txt">${x.aiYorum}</div></div>`:''}
+    </div>`).join('');
+}
+async function aiYorumTahlil(entry){
+  const prompt=`Hasta geçmişi:\n${buildCtx()}\n\nTahlil:\nTür: ${entry.tur}\nDeğerler: ${entry.val}\nTarih: ${entry.tarih}\n\nBu tahlil sonuçlarını yorumla. Dikkat edilmesi gereken değerleri belirt. Beslenme, supplement, yaşam tarzı önerileri ver.`;
+  const resp=await callAI(prompt);
+  entry.aiYorum=resp;
+  save();renderTahlilList();
+}
+
+// ── GÖRÜNTÜLEME (manuel) ──────────────────────────────────
+function saveGoruntuleme(withAI){
+  const tarih=document.getElementById('g-tarih').value||today();
+  const tur=document.getElementById('g-tur').value;
+  const rapor=document.getElementById('g-rapor').value.trim();
+  if(!rapor){alert('Rapor girin.');return;}
+  const e={id:Date.now(),tarih,tur,rapor};
+  S.goruntulmeler.unshift(e);
+  save();renderGoruntulemeList();
+  document.getElementById('g-rapor').value='';
+  if(withAI) aiYorumGoruntuleme(e);
+}
+function renderGoruntulemeList(){
+  const el=document.getElementById('goruntuleme-list');
+  if(!S.goruntulmeler.length){el.innerHTML='<div class="empty"><div class="empty-icon">🔬</div><div class="empty-t">Henüz görüntüleme yok</div></div>';return;}
+  el.innerHTML=S.goruntulmeler.map((x,i)=>`
+    <div class="entry">
+      <div class="entry-head"><span class="badge b-amber">${x.tur}</span>
+      <button class="entry-del" onclick="S.goruntulmeler.splice(${i},1);save();renderGoruntulemeList()">×</button></div>
+      <div class="entry-meta">${fmt(x.tarih)}${x.dosyaAdi?' · '+x.dosyaAdi:''}</div>
+      <div class="entry-body">${(x.rapor||x.ozet||'').substring(0,150)}…</div>
+      ${x.aiYorum?`<div class="ai-box"><div class="ai-lbl">AI Değerlendirmesi</div><div class="ai-txt">${x.aiYorum}</div></div>`:''}
+    </div>`).join('');
+}
+async function aiYorumGoruntuleme(entry){
+  const prompt=`Hasta geçmişi:\n${buildCtx()}\n\nGörüntüleme:\nTür: ${entry.tur}\nTarih: ${entry.tarih}\nRapor: ${entry.rapor}\n\nBu raporu açıkla. Önemli bulguları vurgula.`;
+  const resp=await callAI(prompt);
+  entry.aiYorum=resp;
+  save();renderGoruntulemeList();
+}
+
+// ── CHAT ──────────────────────────────────────────────────
+async function sendChat(){
+  const inp=document.getElementById('chat-in');
+  const msg=inp.value.trim();if(!msg)return;inp.value='';
+  addBubble(msg,'u');
+  S.chat.push({role:'user',content:msg});
+  const loadEl=addBubble('','a',true);
+  const sys=`Sen bir kişisel sağlık asistanısın. Türkçe yanıt ver.\nHasta geçmişi:\n${buildCtx()}\nBilimsel, kişiselleştirilmiş yanıtlar ver. Gerektiğinde doktora danışmayı hatırlat.`;
+  const resp=await callAI(null,sys,S.chat.slice(-12));
+  loadEl.remove();addBubble(resp,'a');
+  S.chat.push({role:'assistant',content:resp});
+  if(S.chat.length>40)S.chat=S.chat.slice(-40);
+  save();
+}
+function addBubble(text,side,loading=false){
+  const msgs=document.getElementById('chat-msgs');
+  const div=document.createElement('div');
+  div.className=`msg msg-${side}`;
+  div.innerHTML=loading
+    ?`<div class="bubble bubble-a"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`
+    :`<div class="bubble bubble-${side}">${text}</div>`;
+  msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;
+  return div;
+}
+
+// ── PROFILE ───────────────────────────────────────────────
+function saveProfile(){
+  S.profile={
+    ad:document.getElementById('p-ad').value,
+    yil:document.getElementById('p-yil').value,
+    cin:document.getElementById('p-cin').value,
+    boy:document.getElementById('p-boy').value,
+    kilo:document.getElementById('p-kilo').value
+  };
+  save();alert('Profil kaydedildi.');
+}
+function loadProfile(){
+  if(!S.profile)return;
+  const f=(id,v)=>{const el=document.getElementById(id);if(el&&v)el.value=v;};
+  f('p-ad',S.profile.ad);f('p-yil',S.profile.yil);
+  f('p-cin',S.profile.cin);f('p-boy',S.profile.boy);f('p-kilo',S.profile.kilo);
+}
+
+// ── CONTEXT ───────────────────────────────────────────────
+function buildCtx(){
+  let c='';
+  if(S.profile?.ad)c+=`Hasta: ${S.profile.ad}, ${S.profile.yil||'?'} doğumlu, ${S.profile.cin||'?'}, ${S.profile.boy||'?'}cm, ${S.profile.kilo||'?'}kg\n\n`;
+  if(S.tanilar.length)c+='TANILAR:\n'+S.tanilar.map(x=>`- ${x.kategori||x.tur}: ${x.acik||x.ozet} (${fmt(x.tarih)})`).join('\n')+'\n\n';
+  if(S.tahliller.length)c+='TAHLİLLER:\n'+S.tahliller.slice(0,6).map(x=>`- ${x.tur} (${fmt(x.tarih)}): ${(x.val||x.ozet||'').substring(0,120)}`).join('\n')+'\n\n';
+  if(S.goruntulmeler.length)c+='GÖRÜNTÜLEME:\n'+S.goruntulmeler.slice(0,4).map(x=>`- ${x.tur} (${fmt(x.tarih)}): ${(x.rapor||x.ozet||'').substring(0,200)}`).join('\n')+'\n\n';
+  return c||'Henüz kayıt yok.';
+}
+
+// ── AI CALL ───────────────────────────────────────────────
+async function callAI(prompt,system,messages){
+  try{
+    const sys=system||'Sen bir kişisel sağlık asistanısın. Türkçe yanıt ver.';
+    const msgs=messages||[{role:'user',content:prompt}];
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:msgs})
+    });
+    const data=await res.json();
+    return data.content?.[0]?.text||'Yanıt alınamadı.';
+  }catch(e){return 'Bağlantı hatası: '+e.message;}
+}
+
+// ── GOOGLE DRIVE ──────────────────────────────────────────
+const GDRIVE_REDIRECT='https://vburakcelik.github.io/saglik-asistani/index.html';
+const GDRIVE_SCOPE='https://www.googleapis.com/auth/drive.readonly';
+let driveToken=null;
+
+function initDrive(){
+  let cid=localStorage.getItem('gdrive_client_id');
+  if(!cid){
+    cid=prompt('Google OAuth Client ID girin:');
+    if(!cid)return;
+    localStorage.setItem('gdrive_client_id',cid);
+  }
+  const p=new URLSearchParams({
+    client_id:cid,
+    redirect_uri:GDRIVE_REDIRECT,
+    response_type:'token',
+    scope:GDRIVE_SCOPE,
+    prompt:'select_account'
+  });
+  window.location.href='https://accounts.google.com/o/oauth2/auth?'+p;
+}
+
+function checkDriveCallback(){
+  const hash=window.location.hash;
+  if(hash.includes('access_token')){
+    const p=new URLSearchParams(hash.substring(1));
+    driveToken=p.get('access_token');
+    localStorage.setItem('gdrive_token',driveToken);
+    window.location.hash='';
+    showPage('yukle');
+    loadDriveFiles();
+  } else {
+    const t=localStorage.getItem('gdrive_token');
+    if(t){driveToken=t;loadDriveFiles();}
+  }
+}
+
+async function loadDriveFiles(){
+  if(!driveToken)return;
+  const panel=document.getElementById('drive-panel');
+  const filesEl=document.getElementById('drive-files');
+  panel.innerHTML='<div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  try{
+    const res=await fetch("https://www.googleapis.com/drive/v3/files?q=(mimeType%3D'application%2Fpdf'+or+mimeType+contains+'image%2F')&fields=files(id,name,mimeType,modifiedTime)&orderBy=modifiedTime+desc&pageSize=30",{
+      headers:{Authorization:'Bearer '+driveToken}
+    });
+    if(res.status===401){
+      localStorage.removeItem('gdrive_token');driveToken=null;
+      panel.innerHTML='<button class="btn btn-accent btn-full" onclick="initDrive()">Yeniden Bağlan</button>';
+      return;
+    }
+    const data=await res.json();
+    panel.style.display='none';
+    filesEl.style.display='block';
+    if(!data.files?.length){filesEl.innerHTML='<p style="font-size:13px;color:var(--text2);">Drive\'da PDF veya görüntü bulunamadı.</p>';return;}
+    filesEl.innerHTML='<div class="card-lbl" style="margin-bottom:8px;">Drive Dosyaları — seçin, AI okusun</div>'+
+      data.files.map(f=>`
+        <div class="drive-file" onclick="importDriveFile('${f.id}','${f.name.replace(/'/g,"\\'")}','${f.mimeType}')">
+          <div class="drive-file-icon">${f.mimeType.includes('pdf')?'📄':'🖼️'}</div>
+          <div style="overflow:hidden;">
+            <div class="drive-file-name">${f.name}</div>
+            <div class="drive-file-meta">${new Date(f.modifiedTime).toLocaleDateString('tr-TR')}</div>
+          </div>
+        </div>`).join('');
+  }catch(e){
+    panel.innerHTML=`<p style="color:var(--danger);font-size:13px;">Hata: ${e.message}</p><button class="btn btn-accent btn-full" style="margin-top:8px;" onclick="initDrive()">Tekrar Dene</button>`;
+  }
+}
+
+async function importDriveFile(fileId,name,mimeType){
+  if(!confirm(`"${name}" dosyasını analiz et ve kaydet?`))return;
+  try{
+    const res=await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,{
+      headers:{Authorization:'Bearer '+driveToken}
+    });
+    const blob=await res.blob();
+    const fileBlob=new Blob([await blob.arrayBuffer()],{type:mimeType});
+    await processFile(fileBlob,name);
+  }catch(e){alert('İndirme hatası: '+e.message);}
+}
+
+// ── PDF EXPORT ────────────────────────────────────────────
+function exportPDF(){
+  const {jsPDF}=window.jspdf;
+  if(!jsPDF){alert('PDF kütüphanesi yüklenemedi.');return;}
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=210,M=16,col=W-M*2;let y=M;
+  function chk(n){if(y+n>282){doc.addPage();y=M;}}
+  function sec(t){chk(11);doc.setFillColor(10,15,30);doc.rect(M-2,y-5,col+4,8,'F');doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(0,212,170);doc.text(t,M,y);y+=9;doc.setTextColor(40,40,40);}
+  function lbl(t){doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(70,70,70);doc.text(t,M,y);y+=5;}
+  function body(t,ind){doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.setTextColor(50,50,50);doc.splitTextToSize(t,col-(ind||0)).forEach(l=>{chk(5.5);doc.text(l,M+(ind||0),y);y+=5.5;});}
+
+  doc.setFillColor(10,15,30);doc.rect(0,0,210,22,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(0,212,170);
+  doc.text('Kisisel Saglik Raporu',M,15);
+  doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setTextColor(136,146,170);
+  doc.text(new Date().toLocaleDateString('tr-TR'),W-M,15,{align:'right'});
+  y=30;
+
+  if(S.profile?.ad){doc.setFontSize(9);doc.setTextColor(100,100,100);doc.text(`${S.profile.ad} | ${S.profile.yil||'?'} | ${S.profile.boy||'?'}cm ${S.profile.kilo||'?'}kg`,M,y);y+=9;}
+
+  if(S.tanilar.length){sec('TANILAR / AMELİYATLAR');S.tanilar.forEach(x=>{lbl((x.kategori||x.tur)+' — '+fmt(x.tarih));body(x.acik||x.ozet||'',4);y+=2;});y+=4;}
+  if(S.tahliller.length){sec('KAN TAHLİLLERİ');S.tahliller.forEach(x=>{lbl(x.tur+' — '+fmt(x.tarih));body((x.val||x.ozet||'').substring(0,300),4);if(x.aiYorum)body('AI: '+(x.aiYorum).substring(0,250),4);y+=3;});y+=4;}
+  if(S.goruntulmeler.length){sec('GÖRÜNTÜLEME');S.goruntulmeler.forEach(x=>{lbl(x.tur+' — '+fmt(x.tarih));body((x.rapor||x.ozet||'').substring(0,300),4);if(x.aiYorum)body('AI: '+(x.aiYorum).substring(0,250),4);y+=3;});y+=4;}
+
+  const pc=doc.internal.getNumberOfPages();
+  for(let i=1;i<=pc;i++){doc.setPage(i);doc.setFontSize(7);doc.setTextColor(150,150,150);doc.text('Sayfa '+i+'/'+pc,W/2,292,{align:'center'});}
+  doc.save('saglik-raporu-'+today()+'.pdf');
+}
+
+// ── JSON BACKUP ───────────────────────────────────────────
+function exportJSON(){
+  const b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download='saglik-yedek-'+today()+'.json';a.click();
+}
+function importJSON(input){
+  const f=input.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{const d=JSON.parse(e.target.result);
+      if(confirm('Mevcut veriler silinecek. Devam?')){S={...S,...d};save();renderAll();loadProfile();alert('İçe aktarıldı.');}
+    }catch{alert('Geçersiz dosya.');}
+  };r.readAsText(f);
+}
+function clearAll(){
+  if(confirm('Tüm veriler silinecek. Emin misiniz?')){
+    S={profile:{},tahliller:[],goruntulmeler:[],tanilar:[],notlar:[],chat:[]};
+    save();renderAll();
+  }
+}
+
+// ── RENDER ALL ────────────────────────────────────────────
+function renderAll(){
+  renderOzet();renderTahlilList();renderGoruntulemeList();updateHeader();
+  const td=today();
+  ['t-tarih','g-tarih'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=td;});
+}
+
+// ── INIT ──────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  load();
+  checkDriveCallback();
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+});
+</script>
+</body>
+</html>
